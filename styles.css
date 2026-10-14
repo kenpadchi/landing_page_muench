@@ -272,3 +272,13 @@ html, body { overflow-x: clip; }
 .form-status.ok { color: #2e6b3a; }
 .form-status.err { color: #b3261e; }
 @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+/* Rechtstexte */
+.legal { padding: 2.5rem 0 4rem; }
+.legal .container { max-width: 760px; }
+.legal h1 { font-size: clamp(2rem, 5vw, 2.8rem); margin-bottom: 1.2rem; }
+.legal h2 { font-size: 1.4rem; margin-top: 2.2rem; }
+.legal a { color: var(--copper-dark); }
+.legal mark { background: #fff1a8; padding: 0 .3em; border-radius: 4px; }
+.legal .notice { background: #fff8d6; border: 1px solid #e8d675; border-radius: 14px; padding: 1rem 1.2rem; font-size: 1rem; }
+.legal .back { display: inline-block; margin-bottom: 1.5rem; }
