@@ -27,7 +27,7 @@
       btn.disabled = true;
       statusEl.className = 'form-status';
       statusEl.textContent = 'Wird gesendet …';
-      fetch('https://formsubmit.co/ajax/die.alltagsengel@web.de', {
+      fetch(form.getAttribute('action'), {
         method: 'POST',
         headers: { 'Accept': 'application/json' },
         body: new FormData(form)
@@ -35,7 +35,7 @@
         if (!r.ok) throw new Error('http ' + r.status);
         return r.json();
       }).then(function (data) {
-        if (data.success === false || data.success === 'false') throw new Error('rejected');
+        if (!data.success) throw new Error('rejected');
         form.reset();
         statusEl.className = 'form-status ok';
         statusEl.textContent = 'Vielen Dank! Ihre Nachricht wurde gesendet.';
