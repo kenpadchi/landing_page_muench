@@ -46,6 +46,75 @@
     });
   }
 
+  // Team-Karussell: natives Scroll-Snap (Wischen), Pfeile + Punkte per JS
+  var carousel = document.getElementById('teamCarousel');
+  if (carousel) {
+    var track = carousel.querySelector('.carousel-track');
+    var cards = Array.prototype.slice.call(track.children);
+    var prev = carousel.querySelector('.carousel-prev');
+    var next = carousel.querySelector('.carousel-next');
+    var dotsWrap = carousel.querySelector('.carousel-dots');
+    var dots = [];
+
+    function cardStep() {
+      return cards.length > 1 ? cards[1].offsetLeft - cards[0].offsetLeft : track.clientWidth;
+    }
+    // Anzahl erreichbarer Scroll-Positionen: Karten minus gleichzeitig sichtbare + 1
+    function positionCount() {
+      var maxScroll = track.scrollWidth - track.clientWidth;
+      return maxScroll > 2 ? Math.round(maxScroll / cardStep()) + 1 : 1;
+    }
+    function currentIndex() {
+      return Math.min(positionCount() - 1, Math.round(track.scrollLeft / cardStep()));
+    }
+    function scrollToCard(i) {
+      i = Math.max(0, Math.min(positionCount() - 1, i));
+      track.scrollTo({ left: cards[i].offsetLeft - cards[0].offsetLeft, behavior: 'smooth' });
+    }
+    function buildDots() {
+      var n = positionCount();
+      if (dots.length === n) return;
+      dotsWrap.innerHTML = '';
+      dots = [];
+      for (var i = 0; i < n; i++) {
+        (function (k) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.setAttribute('role', 'tab');
+          b.setAttribute('aria-label', 'Zu ' + cards[k].querySelector('h3').textContent);
+          b.addEventListener('click', function () { scrollToCard(k); });
+          dotsWrap.appendChild(b);
+          dots.push(b);
+        })(i);
+      }
+      dotsWrap.hidden = n < 2;
+    }
+    function update() {
+      buildDots();
+      var i = currentIndex();
+      var maxScroll = track.scrollWidth - track.clientWidth;
+      prev.disabled = track.scrollLeft <= 2;
+      next.disabled = track.scrollLeft >= maxScroll - 2;
+      dots.forEach(function (d, k) { d.setAttribute('aria-selected', k === i ? 'true' : 'false'); });
+    }
+
+    prev.addEventListener('click', function () { scrollToCard(currentIndex() - 1); });
+    next.addEventListener('click', function () { scrollToCard(currentIndex() + 1); });
+    track.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); scrollToCard(currentIndex() - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); scrollToCard(currentIndex() + 1); }
+    });
+    track.tabIndex = 0;
+
+    var raf;
+    track.addEventListener('scroll', function () {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(update);
+    }, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
   var items = document.querySelectorAll('.reveal');
   if (!('IntersectionObserver' in window)) {
     items.forEach(function (el) { el.classList.add('is-visible'); });
