@@ -1,7 +1,8 @@
 <?php
 // Kontaktformular-Versand (benötigt einen Webhost mit PHP und aktiviertem mail()).
 // Empfänger hier anpassen:
-const EMPFAENGER = 'die.alltagsengel@web.de';
+// TESTPHASE: nach dem Test zurück auf 'die.alltagsengel@web.de' stellen!
+const EMPFAENGER = 'mittlerpatrick0@gmail.com';
 
 header('X-Content-Type-Options: nosniff');
 
