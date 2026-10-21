@@ -36,8 +36,14 @@ $telefon = $clean($_POST['telefon'] ?? '');
 $text    = trim(strip_tags($_POST['nachricht'] ?? ''));
 $datenschutz = !empty($_POST['datenschutz']);
 
-if ($name === '' || $text === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || !$datenschutz) {
-    antwort(false, 'Bitte füllen Sie alle Pflichtfelder korrekt aus.', 422);
+if ($name === '' || $text === '') {
+    antwort(false, 'Bitte füllen Sie Name und Nachricht aus.', 422);
+}
+if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match('/@[^@]+\.[a-z]{2,}$/i', $email)) {
+    antwort(false, 'Die E-Mail-Adresse ist nicht korrekt. Bitte prüfen Sie Ihre Eingabe (z. B. name@beispiel.de).', 422);
+}
+if (!$datenschutz) {
+    antwort(false, 'Bitte bestätigen Sie die Datenschutzerklärung.', 422);
 }
 if (mb_strlen($name) > 120 || mb_strlen($text) > 5000 || mb_strlen($telefon) > 40) {
     antwort(false, 'Ihre Eingabe ist zu lang.', 422);

@@ -17,10 +17,34 @@
   var form = document.getElementById('contactForm');
   var statusEl = document.getElementById('formStatus');
   if (form) {
+    var emailEl = form.querySelector('input[name="email"]');
+    var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    var emailFehler = 'Die E-Mail-Adresse ist nicht korrekt. Bitte prüfen Sie Ihre Eingabe (z. B. name@beispiel.de).';
+
+    function zeigeFehler(text) {
+      statusEl.className = 'form-status err';
+      statusEl.textContent = text;
+    }
+    // Fehlermeldung ausblenden, sobald die E-Mail-Adresse korrigiert wird
+    emailEl.addEventListener('input', function () {
+      emailEl.setCustomValidity('');
+      if (statusEl.textContent === emailFehler) {
+        statusEl.className = 'form-status';
+        statusEl.textContent = '';
+      }
+    });
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       if (!form.checkValidity()) {
         form.reportValidity();
+        return;
+      }
+      if (!emailRe.test(emailEl.value.trim())) {
+        zeigeFehler(emailFehler);
+        emailEl.setCustomValidity(emailFehler);
+        emailEl.reportValidity();
+        emailEl.focus();
         return;
       }
       var btn = form.querySelector('button[type="submit"]');
@@ -32,16 +56,23 @@
         headers: { 'Accept': 'application/json' },
         body: new FormData(form)
       }).then(function (r) {
-        if (!r.ok) throw new Error('http ' + r.status);
-        return r.json();
-      }).then(function (data) {
-        if (!data.success) throw new Error('rejected');
-        form.reset();
-        statusEl.className = 'form-status ok';
-        statusEl.textContent = 'Vielen Dank! Ihre Nachricht wurde gesendet.';
+        // Auch bei 4xx die Meldung des Servers lesen (z. B. ungültige E-Mail)
+        return r.json().then(function (data) { return { status: r.status, data: data }; },
+                             function () { return { status: r.status, data: null }; });
+      }).then(function (res) {
+        if (res.data && res.data.success) {
+          form.reset();
+          statusEl.className = 'form-status ok';
+          statusEl.textContent = 'Vielen Dank! Ihre Nachricht wurde gesendet.';
+          return;
+        }
+        if (res.status >= 400 && res.status < 500 && res.data && res.data.message) {
+          zeigeFehler(res.data.message);   // Eingabefehler: konkrete Meldung, kein Anruf-Hinweis
+          return;
+        }
+        zeigeFehler('Das Senden hat leider nicht geklappt. Bitte rufen Sie uns an: 02684 – 9767397.');
       }).catch(function () {
-        statusEl.className = 'form-status err';
-        statusEl.textContent = 'Das Senden hat leider nicht geklappt. Bitte rufen Sie uns an: 02684 – 9767397.';
+        zeigeFehler('Das Senden hat leider nicht geklappt. Bitte rufen Sie uns an: 02684 – 9767397.');
       }).finally(function () { btn.disabled = false; });
     });
   }
