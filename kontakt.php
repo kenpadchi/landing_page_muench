@@ -2,6 +2,10 @@
 // Kontaktformular-Versand (benötigt einen Webhost mit PHP und aktiviertem mail()).
 // Empfänger hier anpassen:
 const EMPFAENGER = 'die.alltagsengel@web.de';
+// Absender: MUSS eine Adresse der bei All-Inkl gehosteten Domain sein (im KAS als
+// Postfach anlegen). Fremde Absender (web.de, gmail …) werden vom Mailserver
+// verworfen bzw. von web.de/GMX als Spam/Fälschung abgewiesen.
+const ABSENDER  = 'kontakt@alltagsengel-muench.de';
 
 header('X-Content-Type-Options: nosniff');
 
@@ -48,17 +52,21 @@ if (mb_strlen($name) > 120 || mb_strlen($text) > 5000 || mb_strlen($telefon) > 4
     antwort(false, 'Ihre Eingabe ist zu lang.', 422);
 }
 
-$host = preg_replace('/[^a-z0-9.-]/i', '', $_SERVER['SERVER_NAME'] ?? 'localhost');
 $betreff = '=?UTF-8?B?' . base64_encode('Neue Nachricht über die Website Alltagsengel Münch') . '?=';
-$inhalt = "Name: $name\nE-Mail: $email\nTelefon: " . ($telefon ?: '–') . "\n\nNachricht:\n$text\n";
+$inhalt = "Name: $name\nE-Mail: $email\nTelefon: " . ($telefon ?: '–') . "\n\nNachricht:\n$text\n"
+        . "\n-- \nGesendet über das Kontaktformular auf www.alltagsengel-muench.de am " . date('d.m.Y, H:i') . " Uhr\n";
 $header = [
-    'From: Website Alltagsengel Münch <no-reply@' . $host . '>',
+    'From: =?UTF-8?B?' . base64_encode('Website Alltagsengel Münch') . '?= <' . ABSENDER . '>',
     'Reply-To: ' . $email,
     'MIME-Version: 1.0',
     'Content-Type: text/plain; charset=UTF-8',
+    'Content-Transfer-Encoding: 8bit',
+    'X-Mailer: PHP/' . PHP_VERSION,
 ];
 
-if (mail(EMPFAENGER, $betreff, $inhalt, implode("\r\n", $header))) {
+// 5. Parameter: Envelope-Sender (Return-Path) auf die eigene Domain setzen,
+// sonst passt der SPF-Eintrag der Domain nicht und web.de/GMX lehnen ab.
+if (mail(EMPFAENGER, $betreff, $inhalt, implode("\r\n", $header), '-f' . ABSENDER)) {
     antwort(true, 'Vielen Dank! Ihre Nachricht wurde gesendet.');
 }
 antwort(false, 'Das Senden hat leider nicht geklappt. Bitte rufen Sie uns an: 02684 – 9767397.', 500);
