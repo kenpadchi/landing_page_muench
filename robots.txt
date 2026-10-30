@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /kontakt.php
+
+Sitemap: https://alltagsengel-muench.de/sitemap.xml

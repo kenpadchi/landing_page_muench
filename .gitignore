@@ -1,0 +1,18 @@
+# Zugangsdaten für deploy.sh – niemals einchecken
+.env
+
+# Betriebssystem / Editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.vscode/
+.idea/
+
+# Lokale Claude-Code-Einstellungen
+.claude/settings.local.json
+
+# Logs / temporäre Dateien
+*.log
+*.tmp
